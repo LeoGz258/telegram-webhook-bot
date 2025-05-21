@@ -1,33 +1,25 @@
 from flask import Flask, request
-import requests
+import telegram
 import os
 
+TOKEN = os.environ.get('TELEGRAM_TOKEN')
+bot = telegram.Bot(token=TOKEN)
 app = Flask(__name__)
 
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-URL_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
-
-def responder_telegram(chat_id, texto):
-    requests.post(f"{URL_API}/sendMessage", json={
-        "chat_id": chat_id,
-        "text": texto
-    })
-
-@app.route('/', methods=["GET"])
-def home():
-    return "Bot do Telegram está funcionando!"
-
-@app.route('/webhook', methods=["POST"])
+@app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
-    data = request.get_json()
-    
-    if "message" in data:
-        chat_id = data["message"]["chat"]["id"]
-        texto = data["message"].get("text", "")
-        
-        if texto.lower() == "/start":
-            responder_telegram(chat_id, "Bot iniciado com sucesso!")
-        else:
-            responder_telegram(chat_id, f"Você disse: {texto}")
+    update = telegram.Update.de_json(request.get_json(force=True), bot)
+    chat_id = update.message.chat_id
+    message = update.message.text
 
-    return {"ok": True}
+    # Exemplo de resposta automática
+    bot.send_message(chat_id=chat_id, text=f"Você disse: {message}")
+    return 'ok'
+
+@app.route('/')
+def index():
+    return 'Bot está vivo!'
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
