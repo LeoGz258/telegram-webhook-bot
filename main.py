@@ -2,7 +2,7 @@ from flask import Flask, request
 import telegram
 import os
 
-TOKEN = os.environ.get('TELEGRAM_TOKEN')
+TOKEN = os.environ.get('TELEGRAM_TOKEN')  # Seu token deve estar na variável de ambiente
 bot = telegram.Bot(token=TOKEN)
 app = Flask(__name__)
 
@@ -12,7 +12,6 @@ def webhook():
     chat_id = update.message.chat_id
     message = update.message.text
 
-    # Exemplo de resposta automática
     bot.send_message(chat_id=chat_id, text=f"Você disse: {message}")
     return 'ok'
 
